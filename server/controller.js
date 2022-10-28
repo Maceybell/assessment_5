@@ -31,7 +31,7 @@ module.exports = {
                 country_id int references countries(country_id)
             );
 
-          
+            
 
             insert into countries (name)
             values ('Afghanistan'),
@@ -229,6 +229,14 @@ module.exports = {
             ('Yemen'),
             ('Zambia'),
             ('Zimbabwe');
+
+            insert into cities (
+                name, rating, country_id
+            )
+            values ('DevCity', 5, 12),
+            ('MountainTown', 3, 22),
+            ('PrideRock', 1, 45);
+            
         `).then(() => {
             console.log('DB seeded!')
             res.sendStatus(200)
@@ -244,22 +252,22 @@ module.exports = {
     },
 
     createCity: (req, res) => {
-
+        const {name, rating, countryId} = req.body
         sequelize.query(`
             insert into cities (name, rating, country_id)
-            values ('${req.body.name}', ${req.body.rating}, ${req.body.country_id})
+            values ('${name}', ${rating}, ${countryId});
         `).then((dbRes) => {
             res.status(200).send(dbRes[0])
-         }).catch(err => {console.log(err)})
+         }).catch(err => console.log(err))
 
     },
 
     getCities: (req, res) => {
         sequelize.query(`
-        SELECT cities.city_id, cities.name AS, cities.rating, countries.country_id, countries.name AS country
-        FROM cities
-        JOIN countries ON cities.country_id = countries.country_id
-
+        SELECT ci.city_id, ci.name AS city, ci.rating, co.country_id, co.name AS country
+        FROM cities ci
+        JOIN countries co ON ci.country_id = co.country_id
+        ORDER BY ci.rating DESC
             `).then((dbRes) => {
                     res.status(200).send(dbRes[0])
                 }) .catch(err => console.log(err))
@@ -267,8 +275,11 @@ module.exports = {
     },
 
     deleteCity: (req, res) => {
+        
+        const { id } = req.params
         sequelize.query(`
-        DELETE FROM cities WHERE cities.city_id = ${req.params.city_id}
+        DELETE FROM cities 
+        WHERE ${id} = cities.city_id
         `) .then ((dbRes) => {
             res.status(200).send(dbRes[0])
          }) .catch(err => console.log(err))
